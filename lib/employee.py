@@ -1,6 +1,5 @@
 # lib/employee.py
-from __init__ import CURSOR, CONN
-from department import Department
+
 
 class Employee:
 
@@ -28,9 +27,7 @@ class Employee:
         if isinstance(name, str) and len(name):
             self._name = name
         else:
-            raise ValueError(
-                "Name must be a non-empty string"
-            )
+            raise ValueError("Name must be a non-empty string")
 
     @property
     def job_title(self):
@@ -51,11 +48,11 @@ class Employee:
 
     @department_id.setter
     def department_id(self, department_id):
-        if type(department_id) is int and Department.find_by_id(department_id):
+        if isinstance(department_id, int) and Department.find_by_id(department_id):
             self._department_id = department_id
         else:
-            raise ValueError(
-                "department_id must reference a department in the database")
+            raise ValueError("Invalid department_id")
+
 
     @classmethod
     def create_table(cls):
@@ -187,4 +184,22 @@ class Employee:
 
     def reviews(self):
         """Return list of reviews associated with current employee"""
-        pass
+        sql = """
+            SELECT *
+            FROM reviews
+            WHERE employee_id = ?
+        """
+        rows = CURSOR.execute(sql, (self.id,)).fetchall()
+
+        # Create Review objects from the database rows
+        reviews = []
+        for row in rows:
+            review = Review.instance_from_db(row)
+            reviews.append(review)
+        return reviews
+
+from __init__ import CURSOR, CONN
+from department import Department
+from review import Review  
+
+    
